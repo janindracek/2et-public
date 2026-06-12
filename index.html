@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Why the Czech State Fails to Support Its Homegrown Defence Industry — Issue Tree</title>
+<style>
+  :root{
+    --paper:#f6f4ee;
+    --card:#ffffff;
+    --ink:#22262d;
+    --muted:#6e7480;
+    --navy:#1d3a5f;
+    --navy-deep:#142a44;
+    --amber:#a97a1c;
+    --amber-soft:#f8f0dd;
+    --line:#e4dfd2;
+    --maroon:#8d3b2f;
+    --maroon-soft:#f5e7e3;
+    --navy-soft:#e8eef5;
+    --mix-soft:#efe9f3;
+    --mix:#5d4a73;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font:16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:48px 24px 64px}
+
+  /* ---------- header ---------- */
+  .kicker{
+    font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--amber);margin-bottom:14px;
+  }
+  h1{
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:clamp(26px,4.2vw,38px);
+    line-height:1.15;color:var(--navy-deep);
+    margin:0 0 10px;
+  }
+  .sub{font-style:italic;color:var(--muted);margin:0 0 32px;font-size:17px}
+
+  /* ---------- root question ---------- */
+  .root{
+    background:var(--amber-soft);
+    border-left:4px solid var(--amber);
+    border-radius:0 10px 10px 0;
+    padding:18px 22px;
+    margin-bottom:36px;
+  }
+  .root-label{font-size:10.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);margin-bottom:6px}
+  .root-q{margin:0 0 10px;font-size:18.5px;font-weight:600;color:var(--navy-deep);line-height:1.4}
+  .root-d{margin:0;font-size:14.5px;color:#54493a}
+  .root-d+.root-d{margin-top:8px}
+  .root-d em{font-style:normal;font-weight:600;color:var(--navy-deep)}
+
+  /* ---------- mini-map ---------- */
+  .minimap{margin-bottom:36px}
+  .mm-row{display:flex;gap:8px}
+  .mm-box{
+    flex:1;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;
+    background:var(--card);border:1px solid var(--line);border-radius:8px;
+    padding:10px 8px;font:inherit;font-size:12.5px;font-weight:600;color:var(--navy);
+    cursor:pointer;text-align:center;transition:opacity .2s, border-color .2s, box-shadow .2s;
+  }
+  .mm-box:hover{border-color:var(--navy)}
+  .mm-num{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:20px;height:20px;border-radius:50%;
+    background:var(--navy);color:#fff;font-size:11px;font-weight:700;flex:none;
+  }
+  .mm-rails .mm-num{background:var(--maroon)}
+  .mm-tag{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .mm-arrow{
+    text-align:center;color:var(--muted);
+    font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    padding:6px 0;
+  }
+  .mm-box.dim{opacity:.35}
+  .mm-box.hot{border-color:var(--amber);box-shadow:0 0 0 2px rgba(169,122,28,.25)}
+  @media (max-width:640px){
+    .mm-mid{flex-wrap:wrap}
+    .mm-mid .mm-box{flex:1 1 30%}
+  }
+
+  /* ---------- controls ---------- */
+  .controls{
+    display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+    margin-bottom:8px;
+  }
+  .chip{
+    font:inherit;font-size:12.5px;font-weight:600;
+    border:1px solid var(--line);border-radius:999px;
+    background:var(--card);color:var(--ink);
+    padding:6px 14px;cursor:pointer;transition:all .15s;
+  }
+  .chip:hover{border-color:var(--navy)}
+  .chip.active{background:var(--navy);border-color:var(--navy);color:#fff}
+  .controls .spacer{flex:1}
+  .ghost{
+    font:inherit;font-size:12.5px;font-weight:600;
+    border:none;background:none;color:var(--muted);
+    padding:6px 8px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;
+  }
+  .ghost:hover{color:var(--navy)}
+  .lens-note{
+    min-height:22px;
+    font-size:13.5px;color:#54493a;
+    margin:0 0 24px;padding:0 2px;
+  }
+  .lens-note:empty{margin-bottom:24px}
+
+  /* ---------- branch cards ---------- */
+  details.branch{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    margin-bottom:14px;
+    transition:opacity .2s, border-color .2s, box-shadow .2s;
+    overflow:hidden;
+  }
+  details.branch.dim{opacity:.38}
+  details.branch.hot{border-color:var(--amber);box-shadow:0 0 0 2px rgba(169,122,28,.22)}
+  summary{
+    list-style:none;cursor:pointer;
+    display:flex;align-items:center;gap:14px;
+    padding:16px 20px;
+  }
+  summary::-webkit-details-marker{display:none}
+  summary:hover{background:#fbfaf6}
+  .b-num{
+    display:inline-flex;align-items:center;justify-content:center;flex:none;
+    width:30px;height:30px;border-radius:50%;
+    background:var(--navy);color:#fff;font-size:14px;font-weight:700;
+  }
+  .b6 .b-num{background:var(--maroon)}
+  .b-head{flex:1;min-width:0}
+  .b-title{font-size:16.5px;font-weight:700;color:var(--navy-deep);line-height:1.3}
+  .b-desc{font-size:13px;color:var(--muted);margin-top:1px}
+  .pill{
+    flex:none;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    padding:4px 10px;border-radius:999px;white-space:nowrap;
+  }
+  .pill-wont{background:var(--maroon-soft);color:var(--maroon)}
+  .pill-cant{background:var(--navy-soft);color:var(--navy)}
+  .pill-mix{background:var(--mix-soft);color:var(--mix)}
+  .pill-blocks{background:#3d2420;color:#f3d9d2}
+  .chev{
+    flex:none;width:10px;height:10px;
+    border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);
+    transform:rotate(45deg);transition:transform .2s;margin-top:-4px;
+  }
+  details[open] .chev{transform:rotate(-135deg);margin-top:4px}
+  @media (max-width:560px){.pill{display:none}}
+
+  ul.causes{margin:0;padding:4px 22px 14px 64px;list-style:none;border-top:1px solid #f0ece1}
+  ul.causes li{
+    padding:9px 0;font-size:15px;line-height:1.5;
+    border-bottom:1px solid #f4f1e8;
+  }
+  ul.causes li:last-of-type{border-bottom:none}
+  .so{color:var(--muted)}
+  .so::before{content:"→ ";color:var(--amber);font-weight:700}
+  .bites{
+    margin:2px 22px 16px 64px;
+    font-size:12.5px;color:var(--muted);font-style:italic;
+  }
+  .bites b{color:#54493a;font-weight:600;font-style:normal}
+  @media (max-width:560px){
+    ul.causes{padding-left:22px}
+    .bites{margin-left:22px}
+  }
+
+  /* ---------- how to read ---------- */
+  .howto{margin-top:48px}
+  .howto h2{
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:23px;color:var(--navy-deep);margin:0 0 6px;
+  }
+  .howto > p{color:var(--muted);font-size:14.5px;margin:0 0 20px}
+  .lens-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media (max-width:760px){.lens-grid{grid-template-columns:1fr}}
+  .lens-card{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:18px 18px 16px;
+  }
+  .lens-card h3{
+    margin:0 0 8px;font-size:14.5px;color:var(--navy-deep);
+    display:flex;align-items:center;gap:8px;
+  }
+  .lens-no{
+    display:inline-flex;align-items:center;justify-content:center;flex:none;
+    width:22px;height:22px;border-radius:50%;
+    background:var(--amber);color:#fff;font-size:12px;font-weight:700;
+  }
+  .lens-card p{margin:0;font-size:13.5px;color:#4d5360;line-height:1.55}
+  .lens-card .hl{
+    display:inline-block;margin-top:8px;
+    font-size:12px;font-weight:700;color:var(--amber);
+    cursor:pointer;text-decoration:underline;text-underline-offset:3px;
+  }
+
+  footer{
+    margin-top:52px;padding-top:18px;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    font-size:12px;color:var(--muted);
+  }
+
+  /* ---------- print ---------- */
+  @media print{
+    body{background:#fff}
+    .controls,.lens-note,.chev{display:none}
+    details.branch{break-inside:avoid;border-color:#ccc}
+    details.branch.dim{opacity:1}
+    .wrap{padding:0}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker">2ET · Defence Industrial Policy · Diagnostic — PS Odolnost</div>
+    <h1>Why the Czech State Fails to Support Its Homegrown Defence Industry</h1>
+    <p class="sub">An issue tree of root causes, structured by the levers of state action</p>
+  </header>
+
+  <section class="root">
+    <div class="root-label">Root question</div>
+    <p class="root-q">Why does the Czech state fail to convert its domestic defence industry into a competitive, scaling sector?</p>
+    <p class="root-d"><strong>“Support” decomposes into four state functions:</strong> the state <em>buys</em> from the industry&nbsp;· helps it <em>innovate</em>&nbsp;· helps it <em>export</em>&nbsp;· and does <em>not block</em> it.</p>
+    <p class="root-d"><strong>Scope &amp; status:</strong> the tree isolates the <em>state’s</em> contribution — industry-side weaknesses (fragmentation, under-capitalisation, succession) are real but deliberately out of frame. And every box is a <em>hypothesis</em>, not a finding: the group’s job is to confirm or kill each one with first-hand evidence and data.</p>
+  </section>
+
+  <section class="minimap" aria-label="Structure of the tree">
+    <div class="mm-row">
+      <button class="mm-box" data-idx="0" data-target="b0"><span class="mm-num">0</span> Strategy &amp; political will <span class="mm-tag">upstream</span></button>
+    </div>
+    <div class="mm-arrow">↓ &nbsp;drives</div>
+    <div class="mm-row mm-mid">
+      <button class="mm-box" data-idx="1" data-target="b1"><span class="mm-num">1</span> Demand</button>
+      <button class="mm-box" data-idx="2" data-target="b2"><span class="mm-num">2</span> Articulation</button>
+      <button class="mm-box" data-idx="3" data-target="b3"><span class="mm-num">3</span> Absorption</button>
+      <button class="mm-box" data-idx="4" data-target="b4"><span class="mm-num">4</span> Capital</button>
+      <button class="mm-box" data-idx="5" data-target="b5"><span class="mm-num">5</span> Export</button>
+    </div>
+    <div class="mm-arrow">↓ &nbsp;all of it runs on</div>
+    <div class="mm-row">
+      <button class="mm-box mm-rails" data-idx="6" data-target="b6"><span class="mm-num">6</span> Institutional &amp; regulatory rails</button>
+    </div>
+  </section>
+
+  <section class="controls" aria-label="View controls">
+    <button class="chip active" data-lens="all">All branches</button>
+    <button class="chip" data-lens="leverage">Leverage cluster 0+2+3</button>
+    <button class="chip" data-lens="startup">Startup lens</button>
+    <button class="chip" data-lens="prime">Prime lens</button>
+    <button class="chip" data-lens="candidates">Current PS candidates</button>
+    <span class="spacer"></span>
+    <button class="ghost" id="expandAll">Expand all</button>
+    <button class="ghost" id="collapseAll">Collapse all</button>
+  </section>
+  <p class="lens-note" id="lensNote"></p>
+
+  <main>
+
+    <details class="branch" id="b0" data-idx="0" open>
+      <summary>
+        <span class="b-num">0</span>
+        <span class="b-head">
+          <span class="b-title">Strategy &amp; political will</span><br>
+          <span class="b-desc">Upstream — sets the demand for everything below</span>
+        </span>
+        <span class="pill pill-wont">Won’t — a will problem</span>
+        <span class="chev"></span>
+      </summary>
+      <ul class="causes">
+        <li>No clear, funded, multi-year sovereign-capability intent <span class="so">industry has no demand visibility to invest against</span></li>
+        <li>Capability needs framed around legacy platforms, not future threats <span class="so">what is absent from the strategy cannot be procured</span></li>
+        <li>Default “buy foreign off-the-shelf” reflex — interoperability plus ally signalling <span class="so">crowds out domestic suppliers</span></li>
+        <li>Short budget and political cycles <span class="so">no credible long-term commitment to plan against</span></li>
+        <li>No industrial-policy link between defence spend and domestic value-add or sovereignty <span class="so">the money leaves no industrial footprint</span></li>
+      </ul>
+      <p class="bites"><b>Bites hardest:</b> platform &amp; hardware primes — and starves every branch below.</p>
+    </details>
+
+    <details class="branch" id="b1" data-idx="1" open>
+      <summary>
+        <span class="b-num">1</span>
+        <span class="b-head">
+          <span class="b-title">Demand</span><br>
+          <span class="b-desc">The state as anchor customer</span>
+        </span>
+        <span class="pill pill-cant">Can’t — a capacity problem</span>
+        <span class="chev"></span>
+      </summary>
+      <ul class="causes">
+        <li>Risk-averse, audit-driven culture: punished for failure, never rewarded for innovation <span class="so">defaults to incumbents and foreign primes</span></li>
+        <li>Lowest-price, spec-compliance tendering <span class="so">structurally excludes novel solutions</span></li>
+        <li>No fast or agile track — no SBIR equivalent, innovation-partnership procedure unused, no rapid pilots <span class="so">new entrants cannot get in at the speed they live or die at</span></li>
+        <li>No first-order anchor volume <span class="so">startups never win the reference contract they need to scale and raise against</span></li>
+        <li>Procurement cycle length <span class="so">technology is obsolete before award; startups die in the cash gap</span></li>
+      </ul>
+      <p class="bites"><b>Bites hardest:</b> software &amp; dual-use startups — speed and reference contracts.</p>
+    </details>
+
+    <details class="branch" id="b2" data-idx="2" open>
+      <summary>
+        <span class="b-num">2</span>
+        <span class="b-head">
+          <span class="b-title">Demand articulation</span><br>
+          <span class="b-desc">Does the buyer know what is possible?</span>
+        </span>
+        <span class="pill pill-cant">Can’t — a capacity problem</span>
+        <span class="chev"></span>
+      </summary>
+      <ul class="causes">
+        <li>No demo days or experimentation venues <span class="so">the army cannot see what exists — so it cannot spec it, or desire it</span></li>
+        <li>Spec-led rather than problem-led procurement <span class="so">“here is our problem, propose solutions” is never asked</span></li>
+        <li>Weak feedback loops between end-user, procurement and industry <span class="so">field needs never reach the market</span></li>
+        <li>No structured tech-watch or horizon scanning inside the MoD <span class="so">the buyer does not know where the frontier is</span></li>
+        <li>Over-classification <span class="so">blocks the dialogue in both directions</span></li>
+      </ul>
+      <p class="bites"><b>Bites hardest:</b> software &amp; dual-use startups — novel categories the buyer has never seen.</p>
+    </details>
+
+    <details class="branch" id="b3" data-idx="3" open>
+      <summary>
+        <span class="b-num">3</span>
+        <span class="b-head">
+          <span class="b-title">Internal innovation capacity</span><br>
+          <span class="b-desc">Ability to absorb &amp; test</span>
+        </span>
+        <span class="pill pill-cant">Can’t — a capacity problem</span>
+        <span class="chev"></span>
+      </summary>
+      <ul class="causes">
+        <li>No defence innovation unit — no US DIU / UK DASA analogue with mandate, budget and risk tolerance</li>
+        <li>No accessible test ranges, certification or trial infrastructure <span class="so">nowhere to prove a product at home</span></li>
+        <li>No prototype → trial → adoption pathway <span class="so">the “valley of death” between demo and order</span></li>
+        <li>MoD lacks in-house engineers and technologists <span class="so">pay gap plus revolving door hollow out the smart-buyer function</span></li>
+        <li>Military conservatism and not-invented-here <span class="so">novelty is a career risk, not an asset</span></li>
+      </ul>
+      <p class="bites"><b>Bites hardest:</b> software &amp; dual-use startups — certification and test access.</p>
+    </details>
+
+    <details class="branch" id="b4" data-idx="4" open>
+      <summary>
+        <span class="b-num">4</span>
+        <span class="b-head">
+          <span class="b-title">Capital</span><br>
+          <span class="b-desc">De-risking &amp; financing the technology</span>
+        </span>
+        <span class="pill pill-cant">Can’t — a capacity problem</span>
+        <span class="chev"></span>
+      </summary>
+      <ul class="causes">
+        <li>Thin, fragmented national defence R&amp;D budget <span class="so">no critical mass behind any priority</span></li>
+        <li>Weak absorption of EU instruments — EDF, SAFE, ASAP, EDIRPA <span class="so">limited capacity to win, co-finance and administer</span></li>
+        <li>No defence-tech VC or patient capital; ESG and banking exclusions <span class="so">private finance is choked at the source</span></li>
+        <li>Dual-use gap <span class="so">civilian drone, AI, cyber and materials innovation is not channelled into defence</span></li>
+        <li>No grant → procurement bridge <span class="so">winning R&amp;D does not convert into orders</span></li>
+      </ul>
+      <p class="bites"><b>Bites both:</b> startups (the VC gap) and primes (capital intensity).</p>
+    </details>
+
+    <details class="branch" id="b5" data-idx="5" open>
+      <summary>
+        <span class="b-num">5</span>
+        <span class="b-head">
+          <span class="b-title">Export enablement</span><br>
+          <span class="b-desc">Scaling beyond a small home market</span>
+        </span>
+        <span class="pill pill-mix">Won’t + can’t — mixed</span>
+        <span class="chev"></span>
+      </summary>
+      <ul class="causes">
+        <li>A small home market makes export existential <span class="so">yet it is treated as the industry’s private problem</span></li>
+        <li>Slow, opaque export licensing; political squeamishness about end-users <span class="so">deals die in the queue</span></li>
+        <li>Weak G2G salesmanship, export credit and diplomatic backing <span class="so">outgunned by the French, Israeli and Korean state machines</span></li>
+        <li>Legacy concentration in Soviet-era ammunition and small arms <span class="so">absent from the future categories now being bought</span></li>
+        <li>No coordinated country brand or trade-fair presence <span class="so">Czech firms show up alone</span></li>
+      </ul>
+      <p class="bites"><b>Bites hardest:</b> platform &amp; hardware primes — though export is existential for everyone.</p>
+    </details>
+
+    <details class="branch b6" id="b6" data-idx="6" open>
+      <summary>
+        <span class="b-num">6</span>
+        <span class="b-head">
+          <span class="b-title">Institutional &amp; regulatory environment</span><br>
+          <span class="b-desc">The rails everything runs on</span>
+        </span>
+        <span class="pill pill-blocks">Blocks — active friction</span>
+        <span class="chev"></span>
+      </summary>
+      <ul class="causes">
+        <li>IP rules let the state capture industry IP <span class="so">a disincentive to bring your best technology to the buyer</span></li>
+        <li>Security-clearance bottlenecks <span class="so">lock out SMEs, startups and foreign-owned firms</span></li>
+        <li>Certification and standards burden scaled for primes <span class="so">disproportionate for SMEs</span></li>
+        <li>State-owned enterprises (VOP CZ, LOM Praha) with an unclear role split <span class="so">distort the field for private firms</span></li>
+        <li>Fragmented ownership across MoD, MPO and MFA <span class="so">no single accountable owner of the problem</span></li>
+      </ul>
+      <p class="bites"><b>Bites everyone</b> — friction is regressive: heaviest for SMEs and new entrants.</p>
+    </details>
+
+  </main>
+
+  <section class="howto">
+    <h2>How to read this tree</h2>
+    <p>Three lenses, applied in order. The first sorts the diagnosis, the second locates the pain, the third picks the battle.</p>
+    <div class="lens-grid">
+      <div class="lens-card">
+        <h3><span class="lens-no">1</span> Won’t / can’t / blocks</h3>
+        <p>For each branch, ask whether the state fails because it <strong>does not want</strong> to act (0), <strong>cannot</strong> act (1–4), or <strong>actively obstructs</strong> (6). The fix follows the diagnosis — a capacity fix will not solve a will problem.</p>
+      </div>
+      <div class="lens-card">
+        <h3><span class="lens-no">2</span> Overlay the industry segments</h3>
+        <p>Software and dual-use startups bleed most from <strong>1</strong> (agility), <strong>2</strong> (demo days), <strong>3</strong> (certification &amp; test) and <strong>4</strong> (VC). Platform and hardware primes bleed most from <strong>0</strong> (strategy), <strong>4</strong> (capital intensity) and <strong>5</strong> (export &amp; offsets). This tells you where each fix actually bites.</p>
+        <span class="hl" data-lens="startup">Show startup lens →</span>
+      </div>
+      <div class="lens-card">
+        <h3><span class="lens-no">3</span> Highest-leverage cluster</h3>
+        <p>Hypothesis to test: <strong>0 + 2 + 3</strong>. Strategy sets the demand, articulation reveals it, absorption converts it. Demand (1) and capital (4) are necessary, but largely downstream of those three.</p>
+        <span class="hl" data-lens="leverage">Highlight 0 + 2 + 3 →</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="howto nextstep">
+    <h2>From tree to choice — the working session</h2>
+    <p>The tree is the input. The output of the session is a choice: one or two branches the group commits to work on.</p>
+    <div class="lens-grid">
+      <div class="lens-card">
+        <h3><span class="lens-no">1</span> Attack the tree</h3>
+        <p>Each member confirms or kills causes from first-hand experience — <strong>where does your firm actually bleed?</strong> What is missing? A cause nobody in the room can evidence, and no data supports, is a candidate for deletion.</p>
+      </div>
+      <div class="lens-card">
+        <h3><span class="lens-no">2</span> Locate today’s candidates</h3>
+        <p>The group’s two current candidate measures already sit on the tree: <strong>faster certification</strong> → branches 3&nbsp;+&nbsp;6; <strong>EU-level procurement rules</strong> → branches 1&nbsp;+&nbsp;6. The question is no longer “are these good ideas?” but “are these the branches where the diagnosis says the leverage is?”</p>
+        <span class="hl" data-lens="candidates">Show where they sit →</span>
+      </div>
+      <div class="lens-card">
+        <h3><span class="lens-no">3</span> Pick the branch, then the measure</h3>
+        <p>Choose where three things intersect: <strong>size of impact</strong> · <strong>members’ first-hand evidence</strong> · <strong>a credible 2ET role</strong>. Only then scope the specific measure on that branch — problem, benchmark, our role, natural carrier, resources.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>2ET — Druhá ekonomická transformace</span>
+    <span>Issue-tree diagnostic · input for the PS Odolnost content exercise · June 2026</span>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var LENSES = {
+    all:      null,
+    leverage: [0,2,3],
+    startup:  [1,2,3,4],
+    prime:    [0,4,5],
+    candidates: [1,3,6]
+  };
+  var NOTES = {
+    all:      "",
+    leverage: "Hypothesis to test: strategy (0) sets the demand, articulation (2) reveals it, absorption (3) converts it. Demand (1) and capital (4) are necessary but largely downstream.",
+    startup:  "Software & dual-use startups bleed most from procurement agility (1), demo days (2), certification & test access (3) and venture capital (4).",
+    prime:    "Platform & hardware primes bleed most from strategy (0), capital intensity (4) and export & offsets (5).",
+    candidates: "Where the group’s two current candidate measures sit: faster certification → branches 3 + 6; EU-level procurement rules → branches 1 + 6. Compare with the leverage hypothesis (0 + 2 + 3) — the overlap is only partial, which is exactly what the session should test."
+  };
+
+  var chips    = document.querySelectorAll("[data-lens]");
+  var branches = document.querySelectorAll("details.branch");
+  var miniBoxes= document.querySelectorAll(".mm-box");
+  var note     = document.getElementById("lensNote");
+
+  function applyLens(name){
+    var set = LENSES[name];
+    note.textContent = NOTES[name] || "";
+    document.querySelectorAll(".chip[data-lens]").forEach(function(c){
+      c.classList.toggle("active", c.dataset.lens === name);
+    });
+    function mark(el){
+      var idx = parseInt(el.dataset.idx, 10);
+      if (set === null){ el.classList.remove("dim","hot"); return; }
+      var on = set.indexOf(idx) !== -1;
+      el.classList.toggle("hot", on);
+      el.classList.toggle("dim", !on);
+    }
+    branches.forEach(mark);
+    miniBoxes.forEach(mark);
+  }
+
+  chips.forEach(function(c){
+    c.addEventListener("click", function(){
+      applyLens(c.dataset.lens);
+      if (c.classList.contains("hl")){
+        document.querySelector(".controls").scrollIntoView({behavior:"smooth", block:"center"});
+      }
+    });
+  });
+
+  miniBoxes.forEach(function(b){
+    b.addEventListener("click", function(){
+      var t = document.getElementById(b.dataset.target);
+      if (t){ t.open = true; t.scrollIntoView({behavior:"smooth", block:"start"}); }
+    });
+  });
+
+  function setAll(open){
+    branches.forEach(function(d){ d.open = open; });
+  }
+  document.getElementById("expandAll").addEventListener("click", function(){ setAll(true); });
+  document.getElementById("collapseAll").addEventListener("click", function(){ setAll(false); });
+  window.addEventListener("beforeprint", function(){ setAll(true); });
+})();
+</script>
+</body>
+</html>
