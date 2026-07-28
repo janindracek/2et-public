@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EU Inc. — hlasování v Evropském parlamentu</title>
+<style>
+:root{
+  --paper:#f3ece0; --paper2:#ece2d2; --ink:#2c2820; --muted:#7c7264; --line:#d7ccb6;
+  --card:#fbf7ee; --accent:#b5612e;
+  --for:#2f6b4f; --against:#a73b2b; --abstain:#e2b347;
+  --for-soft:#dcebe2; --against-soft:#f1ddd6; --abstain-soft:#f6eccf;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:15px;line-height:1.45}
+a{color:var(--accent)}
+.wrap{max-width:1240px;margin:0 auto;padding:0 18px 56px}
+.banner{background:#322c22;color:#e9dcc4;font-size:12px;padding:6px 14px;text-align:center;letter-spacing:.2px}
+.banner code{color:#f0c98a;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:3px}
+
+.topbar{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:22px 0 4px}
+h1{font-size:21px;margin:0;letter-spacing:-.3px}
+h1 .sub{color:var(--muted);font-weight:400;font-size:15px}
+.asel{font:inherit;font-size:13px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;max-width:100%}
+.adesc{font-size:13px;color:var(--muted);font-style:italic;margin:6px 0 -2px;max-width:880px}
+
+/* vote colors — shared by segments, dots, cells */
+.s-for{background:var(--for);color:#f4efe2}
+.s-against{background:var(--against);color:#f6e7e2}
+.s-abstain{background:var(--abstain);color:#4a3a12}
+
+/* layout: input surface left · eval rail (output) right */
+.main{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(330px,1fr);gap:22px;margin-top:14px;align-items:start}
+.inputpane{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.evalrail{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;position:sticky;top:12px}
+@media(max-width:940px){.main{grid-template-columns:1fr} .evalrail{position:static;order:-1}}
+
+.mapctrl{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.mapctrl .spacer{flex:1 1 auto}
+.hint{font-size:12px;color:var(--muted);margin:-1px 0 12px}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:3px}
+button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:6px 11px;border-radius:8px;cursor:pointer}
+button:hover{background:#f0e7d6}
+.modnote{font-size:12.5px;color:var(--accent);font-weight:600}
+
+.seglist{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--card)}
+.seglist button{border:0;border-radius:0;border-right:1px solid var(--line);padding:5px 10px}
+.seglist button:last-child{border-right:0}
+.seglist button.on{background:var(--accent);color:#fff}
+
+/* faction rows */
+.frow{display:grid;grid-template-columns:1fr auto;gap:10px 14px;align-items:center;padding:9px 4px;border-bottom:1px solid var(--line)}
+.frow:last-child{border-bottom:0}
+.fmeta .nm{font-weight:800;font-size:15px}
+.fmeta .nm .mod{color:var(--accent);margin-left:5px}
+.fmeta .full{font-size:11.5px;color:var(--muted)}
+.fmeta .seats{font-size:12px;color:var(--ink);margin-top:2px}
+.fmeta .seats b{font-size:14px}
+.vote3{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.vote3 button{border:0;border-right:1px solid var(--line);border-radius:0;padding:6px 12px;font-weight:700;font-size:12.5px;color:var(--muted);background:var(--card)}
+.vote3 button:last-child{border-right:0}
+.vote3 button.on.v-for{background:var(--for);color:#f4efe2}
+.vote3 button.on.v-abstain{background:var(--abstain);color:#4a3a12}
+.vote3 button.on.v-against{background:var(--against);color:#f6e7e2}
+.sharebar{grid-column:1/-1;height:5px;border-radius:3px;background:var(--paper2);overflow:hidden;display:flex}
+.sharebar i{display:block;height:100%}
+
+/* country (Země) view */
+.switchbox{display:flex;align-items:flex-start;gap:10px;background:var(--paper2);border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-bottom:10px}
+.switchbox .tg{flex:0 0 auto;margin-top:1px}
+.switchbox .lab{font-size:12.5px;color:var(--ink)}
+.switchbox .lab b{font-weight:700}
+.switchbox .lab .mut{color:var(--muted)}
+.toggle{appearance:none;width:40px;height:22px;border-radius:22px;background:var(--line);position:relative;cursor:pointer;transition:background .12s;border:0}
+.toggle:checked{background:var(--for)}
+.toggle::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .12s}
+.toggle:checked::after{left:20px}
+.ctbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.ctbl th{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:600;text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
+.ctbl td{padding:4px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+.ctbl tr:last-child td{border-bottom:0}
+.ctbl tr.blocked{background:var(--accent);background:rgba(181,97,46,.09)}
+.ctbl .cn{font-weight:700;white-space:nowrap}
+.ctbl .cn .iso{color:var(--muted);font-weight:600;font-size:11px;margin-left:3px}
+.ctbl .gv{color:var(--muted);font-size:11.5px;white-space:nowrap}
+.ctbl .gv b{color:var(--ink)}
+.seg-mini{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg-mini button{border:0;border-right:1px solid var(--line);border-radius:0;padding:3px 7px;font-size:11px;font-weight:700;color:var(--muted);background:var(--card)}
+.seg-mini button:last-child{border-right:0}
+.seg-mini button.on{background:var(--ink);color:var(--paper)}
+.seg-mini button.on.v-for{background:var(--for);color:#f4efe2}
+.seg-mini button.on.v-abstain{background:var(--abstain);color:#4a3a12}
+.seg-mini button.on.v-against{background:var(--against);color:#f6e7e2}
+.cl-disabled{opacity:.5}  /* council position dimmed when switch off, but still pre-settable */
+
+/* eval rail */
+.qhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.qbig{font-size:30px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:center;gap:10px}
+.qbig .dot{width:16px;height:16px;border-radius:50%}
+.pass{color:var(--for)} .pass .dot{background:var(--for)}
+.fail{color:var(--against)} .fail .dot{background:var(--against)}
+.qnums{font-size:13.5px;color:var(--muted);margin-top:3px} .qnums b{color:var(--ink)}
+.qnums .pro{color:var(--for);font-weight:800} .qnums .proti{color:var(--against);font-weight:800} .qnums .zdr{color:#a9852a;font-weight:800}
+.qsub{font-size:12.5px;color:var(--muted);margin-top:7px}
+.rdiv{border-top:1px solid var(--line);margin:14px 0}
+.rule-tg{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:6px}
+
+.bars{display:flex;flex-direction:column;gap:16px;margin:4px 0 2px}
+.barblock{display:flex;flex-direction:column;gap:5px;padding:9px 10px;border:1px solid transparent;border-radius:9px}
+.barblock.act{border-color:var(--line);background:var(--paper2)}
+.barhdr{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.barhdr .blab{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.4px}
+.barhdr .blab .star{color:var(--accent)}
+.barhdr .bval{font-size:12.5px;color:var(--muted)} .barhdr .bval b{color:var(--ink);font-weight:800;font-size:15px}
+.track{position:relative;width:100%;height:28px;border-radius:6px;overflow:hidden;border:1px solid var(--line);background:var(--paper2);display:flex}
+.seg{height:100%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;overflow:hidden;min-width:0}
+.thr{position:absolute;top:-3px;bottom:-3px;width:2px;background:#3a342a;z-index:3}
+.barcap{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;color:var(--muted);gap:8px}
+.dist{font-size:11px;font-weight:800;padding:2px 9px;border-radius:11px;white-space:nowrap}
+.dist.ok{color:var(--for);background:var(--for-soft)} .dist.bad{color:var(--against);background:var(--against-soft)}
+.note{font-size:11.5px;color:var(--muted);margin-top:10px;border-left:3px solid var(--line);padding-left:9px;line-height:1.5}
+
+/* matrix evidence */
+.evi{margin-top:18px}
+.evi h2{font-size:14px;margin:0 0 3px;letter-spacing:-.2px}
+.evi .esub{font-size:12px;color:var(--muted);margin:0 0 10px}
+.mxwrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.mx{border-collapse:collapse;font-size:12px;min-width:760px;width:100%}
+.mx th{position:sticky;top:0;background:var(--card);font-size:10.5px;color:var(--muted);font-weight:700;padding:6px 5px;text-align:center;border-bottom:1px solid var(--line)}
+.mx th.cnh{text-align:left;left:0;z-index:2;min-width:118px}
+.mx td{padding:0;text-align:center;border-bottom:1px solid #eee5d4;border-right:1px solid #eee5d4}
+.mx td.cn{text-align:left;font-weight:700;white-space:nowrap;padding:3px 8px;position:sticky;left:0;background:var(--card);z-index:1}
+.mx td.cn .iso{color:var(--muted);font-weight:600;font-size:10px;margin-left:3px}
+.mx td.tot{font-weight:800;color:var(--muted);background:var(--paper2)}
+.cell{width:100%;height:100%;min-height:24px;display:flex;align-items:center;justify-content:center;font-weight:700;cursor:default}
+.cell.gov{box-shadow:inset 0 0 0 2px rgba(181,97,46,.85)}
+.mx tr.totrow td{border-top:2px solid var(--line);font-weight:800;background:var(--paper2)}
+.mx tr:hover td.cn{color:var(--accent)}
+
+.leg{margin-top:11px;font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+.leg .it{display:inline-flex;align-items:center;gap:5px}
+.sw{width:13px;height:13px;border-radius:4px;display:inline-block;border:1px solid rgba(0,0,0,.12)}
+.sw.ring{box-shadow:inset 0 0 0 2px rgba(181,97,46,.85);background:transparent}
+
+/* rationale */
+.rat{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:7px 18px}
+@media(max-width:720px){.rat{grid-template-columns:1fr}}
+.rat .ri{font-size:12px;color:#433c30;display:flex;gap:8px;align-items:baseline}
+.rat .ri .bdot{flex:0 0 auto;width:9px;height:9px;border-radius:50%;margin-top:4px}
+.rat .ri .gn{font-weight:800;white-space:nowrap}
+.rat .ri .bl{font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+
+.foot{font-size:11.5px;color:var(--muted);margin-top:22px;border-top:1px solid var(--line);padding-top:11px;line-height:1.6}
+.foot b{color:var(--ink)}
+.seam{background:rgba(181,97,46,.07);border:1px dashed var(--accent);border-radius:8px;padding:9px 11px;margin-top:12px;font-size:11.5px;color:#5a4632;line-height:1.55}
+.seam b{color:var(--accent)}
+@media(max-width:560px){h1{font-size:18px} .wrap{padding:0 10px 48px} .qbig{font-size:25px}}
+</style>
+</head>
+<body>
+<div class="banner">Interaktivní model postojů Evropského parlamentu k EU Inc. · data k 27. 6. 2026</div>
+<div class="wrap">
+
+<div class="topbar">
+  <h1>EU Inc. — hlasování v Evropském parlamentu <span class="sub">· plenární, 2024–2029 (720 křesel)</span></h1>
+  <select class="asel" id="asel" onchange="applyScenario(this.value)"></select>
+</div>
+<div class="adesc" id="adesc"></div>
+
+<div class="main">
+  <section class="inputpane">
+    <div class="mapctrl">
+      <button onclick="reset()">↺ Výchozí</button>
+      <span class="modnote" id="modnote"></span>
+      <span class="spacer"></span>
+      <div class="seglist" id="seg-view">
+        <button data-v="frakce" class="on" onclick="setView('frakce')">Frakce</button>
+        <button data-v="zeme" onclick="setView('zeme')">Země</button>
+      </div>
+    </div>
+
+    <div id="view-frakce">
+      <div class="hint">Primární ovladač. Klikni na PRO / ZDRŽ / PROTI u každé frakce — verdikt se přepočítá živě. Frakce jsou hlavní jednotka.</div>
+      <div id="factions"></div>
+    </div>
+
+    <div id="view-zeme" style="display:none">
+      <div class="switchbox">
+        <span class="tg"><input type="checkbox" class="toggle" id="followtg" onchange="toggleFollow(this.checked)"></span>
+        <span class="lab"><b>Vládně ukotvení europoslanci hlasují podle linie Rady.</b>
+          <span class="mut">Když zapnuto, křesla frakcí, které jsou v národní vládní koalici, hlasují podle „Pozice v Radě" dané země — bez ohledu na frakční linii. <i>(Seam: při sloučení přijde Pozice v Radě živě z Rady-tabu.)</i></span></span>
+      </div>
+      <div class="hint"><b>Blok země</b> přebíjí vše (i linii Rady). <b>—</b> = bez bloku, frakce/Rada rozhodují. Přednost: blok země &gt; linie Rady &gt; frakce.</div>
+      <table class="ctbl" id="countries"></table>
+    </div>
+  </section>
+
+  <aside class="evalrail">
+    <div class="eyebrow">Verdikt — projde EU Inc. plénem?</div>
+    <div class="qhead"><div class="qbig" id="qverdict"><span class="dot"></span><span class="t">—</span></div></div>
+    <div class="qnums" id="qnums"></div>
+    <div class="qsub" id="qsub"></div>
+    <div class="rdiv"></div>
+    <div class="rule-tg">Rozhodující práh:
+      <span class="seglist" id="seg-rule">
+        <button data-v="simple" onclick="setRule('simple')">prostá většina</button>
+        <button data-v="absolute" onclick="setRule('absolute')">absolutní (≥361)</button>
+      </span>
+    </div>
+    <div class="bars" id="bars"></div>
+    <div class="note" id="absnote"></div>
+  </aside>
+</div>
+
+<div class="evi">
+  <h2>Matice křesel: země × frakce</h2>
+  <p class="esub">Barva buňky = jak těch křesel hlasuje teď (PRO / ZDRŽ / PROTI). <b>Oranžový rámeček</b> = vládně ukotvená křesla (frakce v národní koalici). Datový model, který engine sčítá.</p>
+  <div class="mxwrap"><table class="mx" id="matrix"></table></div>
+  <div class="leg" id="legend"></div>
+  <div class="rat" id="rationale"></div>
+</div>
+
+<div class="foot" id="foot"></div>
+<div class="seam" id="seamfoot"></div>
+
+</div>
+<script>
+const PAYLOAD = {"groups": [{"id": "EPP", "short": "ELS", "full": "Evropská lidová strana (EPP)", "baseline": "for", "rationale": "Motor jednotného trhu a konkurenceschopnosti — EU Inc. je do velké míry jejich agenda.", "seats": 188}, {"id": "S&D", "short": "S&D", "full": "Socialisté a demokraté (S&D)", "baseline": "for", "rationale": "Pro hlubší integraci, ale tlačí na ochranu zaměstnanců a daňové pojistky — podpora podmíněná.", "seats": 136}, {"id": "PfE", "short": "Patrioti", "full": "Patrioti pro Evropu (PfE)", "baseline": "against", "rationale": "Anti-federalisté — odmítají nový celoevropský právní subjekt nad národním právem.", "seats": 84}, {"id": "RE", "short": "Renew", "full": "Renew Europe / Obnova Evropy (RE)", "baseline": "for", "rationale": "Nejhlasitější zastánci — 28. režim je z velké části liberální projekt.", "seats": 78}, {"id": "ECR", "short": "EKR", "full": "Evropští konzervativci a reformisté (ECR)", "baseline": "against", "rationale": "Subsidiarita — odpor k nadnárodnímu obchodnímu právu, ale část je byznysově pragmatická.", "seats": 76}, {"id": "Greens/EFA", "short": "Zelení", "full": "Zelení / Evropská svobodná aliance", "baseline": "abstain", "rationale": "Pro integraci, ale obava z daňové/regulatorní arbitráže a oslabení spolurozhodování.", "seats": 54}, {"id": "Left", "short": "Levice", "full": "Levice (GUE/NGL)", "baseline": "against", "rationale": "Vidí v tom deregulaci a závod ke dnu na úkor práce a daní.", "seats": 45}, {"id": "NI", "short": "Nezař.", "full": "Nezařazení poslanci (NI)", "baseline": "abstain", "rationale": "Heterogenní směs bez skupinové linie — bez společného postoje.", "seats": 32}, {"id": "ESN", "short": "ESN", "full": "Evropa suverénních národů (ESN)", "baseline": "against", "rationale": "Suverenisté — zásadně proti prohlubování evropské integrace.", "seats": 27}], "countries": [{"iso": "DE", "name": "Německo", "seats": 96, "by_group": {"EPP": 31, "S&D": 14, "RE": 9, "Greens/EFA": 15, "ECR": 0, "PfE": 0, "Left": 4, "ESN": 15, "NI": 8}, "gov_groups": ["EPP", "S&D"], "gov_note": "CDU/CSU (ELS) + SPD (S&D) — Merzova vláda (2025)", "gov_seats": 45, "conf": "high"}, {"iso": "FR", "name": "Francie", "seats": 81, "by_group": {"EPP": 6, "S&D": 13, "RE": 13, "Greens/EFA": 5, "ECR": 4, "PfE": 30, "Left": 9, "ESN": 1, "NI": 0}, "gov_groups": ["RE"], "gov_note": "Renaissance/MoDem (Renew) — menšinová Lecornuova vláda; PS (S&D) jen toleruje", "gov_seats": 13, "conf": "med"}, {"iso": "IT", "name": "Itálie", "seats": 76, "by_group": {"EPP": 9, "S&D": 20, "RE": 1, "Greens/EFA": 4, "ECR": 24, "PfE": 7, "Left": 10, "ESN": 1, "NI": 0}, "gov_groups": ["ECR", "PfE", "EPP"], "gov_note": "FdI (EKR) + Lega (Patrioti) + Forza Italia (ELS) — Meloniová", "gov_seats": 40, "conf": "med"}, {"iso": "ES", "name": "Španělsko", "seats": 61, "by_group": {"EPP": 22, "S&D": 20, "RE": 1, "Greens/EFA": 4, "ECR": 0, "PfE": 6, "Left": 4, "ESN": 0, "NI": 4}, "gov_groups": ["S&D", "Left"], "gov_note": "PSOE (S&D) + Sumar (Levice) — Sánchez, menšinová", "gov_seats": 24, "conf": "med"}, {"iso": "PL", "name": "Polsko", "seats": 53, "by_group": {"EPP": 22, "S&D": 3, "RE": 2, "Greens/EFA": 0, "ECR": 20, "PfE": 2, "Left": 0, "ESN": 3, "NI": 1}, "gov_groups": ["EPP", "S&D", "RE"], "gov_note": "KO+PSL (ELS) + Polska 2050 (Renew) + Lewica (S&D) — Tusk", "gov_seats": 27, "conf": "med"}, {"iso": "RO", "name": "Rumunsko", "seats": 33, "by_group": {"EPP": 10, "S&D": 11, "RE": 3, "Greens/EFA": 1, "ECR": 6, "PfE": 0, "Left": 0, "ESN": 0, "NI": 2}, "gov_groups": [], "gov_note": "Vládní krize (2026): Bolojanova koalice padla; bez potvrzené vlády — poslední stabilní byla PNL/PSD/USR", "gov_seats": 0, "conf": "med"}, {"iso": "NL", "name": "Nizozemsko", "seats": 31, "by_group": {"EPP": 6, "S&D": 4, "RE": 7, "Greens/EFA": 6, "ECR": 1, "PfE": 6, "Left": 1, "ESN": 0, "NI": 0}, "gov_groups": ["EPP", "RE"], "gov_note": "D66+VVD (Renew) + CDA (ELS) — Jettenova menšinová (2026)", "gov_seats": 13, "conf": "high"}, {"iso": "BE", "name": "Belgie", "seats": 22, "by_group": {"EPP": 3, "S&D": 4, "RE": 5, "Greens/EFA": 2, "ECR": 3, "PfE": 3, "Left": 2, "ESN": 0, "NI": 0}, "gov_groups": ["ECR", "EPP", "S&D", "RE"], "gov_note": "N-VA (EKR) + CD&V (ELS) + Vooruit (S&D) + MR/Les Engagés (Renew) — De Wever", "gov_seats": 15, "conf": "high"}, {"iso": "CZ", "name": "Česko", "seats": 21, "by_group": {"EPP": 5, "S&D": 0, "RE": 0, "Greens/EFA": 1, "ECR": 4, "PfE": 8, "Left": 0, "ESN": 1, "NI": 2}, "gov_groups": ["PfE", "ESN"], "gov_note": "ANO (Patrioti) + SPD (ESN) + Motoristé — Babišova vláda (2025)", "gov_seats": 9, "conf": "high"}, {"iso": "GR", "name": "Řecko", "seats": 21, "by_group": {"EPP": 7, "S&D": 4, "RE": 0, "Greens/EFA": 0, "ECR": 2, "PfE": 1, "Left": 3, "ESN": 0, "NI": 4}, "gov_groups": ["EPP"], "gov_note": "Nová demokracie (ELS) — Mitsotakis, jednobarevná většina", "gov_seats": 7, "conf": "med"}, {"iso": "HU", "name": "Maďarsko", "seats": 21, "by_group": {"EPP": 8, "S&D": 2, "RE": 0, "Greens/EFA": 0, "ECR": 0, "PfE": 10, "Left": 0, "ESN": 1, "NI": 0}, "gov_groups": ["EPP"], "gov_note": "Tisza (ELS) — Magyar (2026); pozor: Fideszovi europoslanci ale sedí v Patriotech", "gov_seats": 8, "conf": "high"}, {"iso": "PT", "name": "Portugalsko", "seats": 21, "by_group": {"EPP": 7, "S&D": 8, "RE": 2, "Greens/EFA": 0, "ECR": 0, "PfE": 2, "Left": 2, "ESN": 0, "NI": 0}, "gov_groups": ["EPP"], "gov_note": "PSD+CDS (ELS) — Montenegro, menšinová", "gov_seats": 7, "conf": "high"}, {"iso": "SE", "name": "Švédsko", "seats": 21, "by_group": {"EPP": 5, "S&D": 5, "RE": 3, "Greens/EFA": 3, "ECR": 3, "PfE": 0, "Left": 2, "ESN": 0, "NI": 0}, "gov_groups": ["EPP", "RE"], "gov_note": "M+KD (ELS) + L (Renew); SD (EKR) podporuje zvenčí — Kristersson", "gov_seats": 8, "conf": "high"}, {"iso": "AT", "name": "Rakousko", "seats": 20, "by_group": {"EPP": 5, "S&D": 5, "RE": 2, "Greens/EFA": 2, "ECR": 0, "PfE": 6, "Left": 0, "ESN": 0, "NI": 0}, "gov_groups": ["EPP", "S&D", "RE"], "gov_note": "ÖVP (ELS) + SPÖ (S&D) + NEOS (Renew) — Stocker", "gov_seats": 12, "conf": "high"}, {"iso": "BG", "name": "Bulharsko", "seats": 17, "by_group": {"EPP": 6, "S&D": 2, "RE": 3, "Greens/EFA": 0, "ECR": 1, "PfE": 0, "Left": 0, "ESN": 3, "NI": 2}, "gov_groups": [], "gov_note": "Progresivní Bulharsko (Radev, 2026) — nová strana bez europoslanců; žádná skupina nemapuje vládu", "gov_seats": 0, "conf": "med"}, {"iso": "DK", "name": "Dánsko", "seats": 15, "by_group": {"EPP": 2, "S&D": 3, "RE": 4, "Greens/EFA": 3, "ECR": 1, "PfE": 1, "Left": 1, "ESN": 0, "NI": 0}, "gov_groups": ["S&D", "Greens/EFA", "RE"], "gov_note": "Socialdemokraterne (S&D) + SF (Zelení) + Moderaterne/Radikale (Renew) — Frederiksenová", "gov_seats": 10, "conf": "high"}, {"iso": "SK", "name": "Slovensko", "seats": 15, "by_group": {"EPP": 1, "S&D": 0, "RE": 6, "Greens/EFA": 0, "ECR": 0, "PfE": 0, "Left": 0, "ESN": 1, "NI": 7}, "gov_groups": ["NI", "ESN"], "gov_note": "Smer (Nezař. — pozastaven v S&D) + Hlas (ESN) + SNS — Fico", "gov_seats": 8, "conf": "high"}, {"iso": "FI", "name": "Finsko", "seats": 15, "by_group": {"EPP": 4, "S&D": 2, "RE": 3, "Greens/EFA": 2, "ECR": 1, "PfE": 0, "Left": 3, "ESN": 0, "NI": 0}, "gov_groups": ["EPP", "ECR", "RE"], "gov_note": "Kokoomus (ELS) + Finové (EKR) + SFP (Renew) — Orpo", "gov_seats": 8, "conf": "high"}, {"iso": "IE", "name": "Irsko", "seats": 14, "by_group": {"EPP": 4, "S&D": 1, "RE": 6, "Greens/EFA": 0, "ECR": 0, "PfE": 0, "Left": 3, "ESN": 0, "NI": 0}, "gov_groups": ["EPP", "RE"], "gov_note": "Fianna Fáil (Renew) + Fine Gael (ELS) — Martin (2025)", "gov_seats": 10, "conf": "high"}, {"iso": "HR", "name": "Chorvatsko", "seats": 12, "by_group": {"EPP": 6, "S&D": 4, "RE": 0, "Greens/EFA": 1, "ECR": 1, "PfE": 0, "Left": 0, "ESN": 0, "NI": 0}, "gov_groups": ["EPP", "ECR"], "gov_note": "HDZ (ELS) + Domovinské hnutí (EKR) — Plenković", "gov_seats": 7, "conf": "high"}, {"iso": "LT", "name": "Litva", "seats": 11, "by_group": {"EPP": 3, "S&D": 2, "RE": 2, "Greens/EFA": 2, "ECR": 1, "PfE": 0, "Left": 0, "ESN": 1, "NI": 0}, "gov_groups": ["S&D", "Greens/EFA", "ECR"], "gov_note": "LSDP (S&D) + LVŽS (Zelení) + AWPL (EKR) — Ruginienė", "gov_seats": 5, "conf": "med"}, {"iso": "LV", "name": "Lotyšsko", "seats": 9, "by_group": {"EPP": 2, "S&D": 1, "RE": 1, "Greens/EFA": 1, "ECR": 3, "PfE": 1, "Left": 0, "ESN": 0, "NI": 0}, "gov_groups": ["EPP", "ECR"], "gov_note": "Jednota (ELS) + NA/Spojený seznam (EKR) — Kulbergs (2026)", "gov_seats": 5, "conf": "high"}, {"iso": "SI", "name": "Slovinsko", "seats": 9, "by_group": {"EPP": 5, "S&D": 1, "RE": 2, "Greens/EFA": 1, "ECR": 0, "PfE": 0, "Left": 0, "ESN": 0, "NI": 0}, "gov_groups": ["EPP"], "gov_note": "SDS (ELS) + NSi (ELS) — Janša (2026)", "gov_seats": 5, "conf": "high"}, {"iso": "EE", "name": "Estonsko", "seats": 7, "by_group": {"EPP": 2, "S&D": 2, "RE": 2, "Greens/EFA": 0, "ECR": 0, "PfE": 1, "Left": 0, "ESN": 0, "NI": 0}, "gov_groups": ["RE"], "gov_note": "Reforma (Renew) + Estonsko 200 — Michal (pozn. Renew má i opoziční Centristy)", "gov_seats": 2, "conf": "med"}, {"iso": "CY", "name": "Kypr", "seats": 6, "by_group": {"EPP": 2, "S&D": 1, "RE": 0, "Greens/EFA": 0, "ECR": 1, "PfE": 0, "Left": 1, "ESN": 0, "NI": 1}, "gov_groups": ["EPP", "S&D"], "gov_note": "DISY (ELS) + DIKO (S&D) — prezident Christodoulides", "gov_seats": 3, "conf": "high"}, {"iso": "LU", "name": "Lucembursko", "seats": 6, "by_group": {"EPP": 2, "S&D": 1, "RE": 1, "Greens/EFA": 1, "ECR": 0, "PfE": 0, "Left": 0, "ESN": 0, "NI": 1}, "gov_groups": ["EPP", "RE"], "gov_note": "CSV (ELS) + DP (Renew) — Frieden", "gov_seats": 3, "conf": "high"}, {"iso": "MT", "name": "Malta", "seats": 6, "by_group": {"EPP": 3, "S&D": 3, "RE": 0, "Greens/EFA": 0, "ECR": 0, "PfE": 0, "Left": 0, "ESN": 0, "NI": 0}, "gov_groups": ["S&D"], "gov_note": "Labouristé (S&D) — Abela, většina", "gov_seats": 3, "conf": "high"}], "council_default": "for", "rule_default": "simple", "abs_majority": 361, "total": 720, "as_of": "2026-06", "thr_note": "Prostá většina = víc PRO než PROTI z odevzdaných hlasů (zdržení se nepočítají). Absolutní většina = ≥361 z 720 (potřebná u 2. čtení, souhlasu, vyslovení nedůvěry).", "scenarios": [{"id": "baseline", "label": "Výchozí odhad (frakční linie)", "desc": "Skupiny hlasují podle své výchozí linie k EU Inc. Velká koalice ELS + S&D + Renew táhne PRO; pravice (Patrioti, EKR, ESN) a Levice proti, Zelení a Nezařazení se zdrží. Bez bloků zemí, linie Rady vypnutá.", "sets": {}}, {"id": "council_on", "label": "Vlády táhnou (linie Rady ZAP)", "desc": "Vládně ukotvení europoslanci hlasují podle pozice své vlády v Radě (zde výchozí: všichni PRO). Ukazuje, jak národní vlády přetahují i jinak skeptické frakce — sledujte propad PROTI a skok PRO.", "sets": {"councilFollow": true}}, {"id": "sd_abstain", "label": "S&D se zdrží (vrávorá koalice)", "desc": "Socialisté přejdou na zdržení (spor o ochranu práce a daňové pojistky). Projde EU Inc. i bez nich? Pozor na rozdíl mezi prostou a absolutní většinou.", "sets": {"faction": {"S&D": "abstain"}}}, {"id": "core_only", "label": "Jen liberálně-lidovecké jádro", "desc": "PRO zůstávají jen ELS a Renew; S&D se zdrží, ostatní (vč. Zelených a Nezařazených) proti. Varovný scénář — bez S&D to padá.", "sets": {"faction": {"S&D": "abstain", "Greens/EFA": "against", "NI": "against"}}}], "built": "2026-06-27 19:59"};
+const GROUPS = PAYLOAD.groups;            // display order (by size)
+const COUNTRIES = PAYLOAD.countries;      // by size
+const GKEYS = ["EPP","S&D","RE","Greens/EFA","ECR","PfE","Left","ESN","NI"];
+const ABS = PAYLOAD.abs_majority, TOTAL = PAYLOAD.total;
+const VLBL = {for:"PRO", abstain:"ZDRŽ", against:"PROTI"};
+const CLBL = {for:"ANO", abstain:"ZDRŽ", against:"NE"};      // Council framing
+const VORDER = ["for","abstain","against"];
+const vcls = v => "s-"+v;
+const seatWord = n => (n===1?"křeslo":(n>=2&&n<=4?"křesla":"křesel"));
+
+// ---- state ----
+let factionVote={}, blocOverride={}, councilPos={}, councilFollow=false, rule=PAYLOAD.rule_default, view="frakce";
+const BASE_FACTION = {}; GROUPS.forEach(g=>BASE_FACTION[g.id]=g.baseline);
+const GOV = {}; COUNTRIES.forEach(c=>GOV[c.iso]=new Set(c.gov_groups));
+
+function hardReset(){
+  factionVote={}; GROUPS.forEach(g=>factionVote[g.id]=g.baseline);
+  blocOverride={}; COUNTRIES.forEach(c=>blocOverride[c.iso]=null);
+  councilPos={}; COUNTRIES.forEach(c=>councilPos[c.iso]=PAYLOAD.council_default);
+  councilFollow=false; rule=PAYLOAD.rule_default;
+}
+
+// ---- ENGINE = TRUTH: effective vote of one (country,group) cell ----
+function effVote(iso, gid){
+  if(blocOverride[iso]) return blocOverride[iso];                 // 1. country bloc wins
+  if(councilFollow && GOV[iso].has(gid)) return councilPos[iso];  // 2. council line (gov-aligned only)
+  return factionVote[gid];                                        // 3. faction default
+}
+function compute(){
+  let f=0,a=0,z=0;
+  COUNTRIES.forEach(c=>{ GKEYS.forEach(g=>{ const n=c.by_group[g]; if(!n) return;
+    const v=effVote(c.iso,g); if(v==="for")f+=n; else if(v==="against")a+=n; else z+=n; }); });
+  const cast=f+a;
+  const needS=Math.floor(cast/2)+1;             // strict majority of cast
+  const simplePass=f>a, simpleDist=f-needS;     // dist>=0  <=>  pass
+  const absPass=f>=ABS, absDist=f-ABS;
+  return {f,a,z,cast,needS,simplePass,simpleDist,absPass,absDist};
+}
+function modifiedCount(){
+  let n=0;
+  GROUPS.forEach(g=>{ if(factionVote[g.id]!==BASE_FACTION[g.id]) n++; });
+  COUNTRIES.forEach(c=>{ if(blocOverride[c.iso]) n++; });
+  if(councilFollow) n++;
+  return n;
+}
+
+// ---- render: verdict + bars ----
+function renderVerdict(){
+  const c=compute(), pass = rule==="simple"? c.simplePass : c.absPass;
+  const v=document.getElementById("qverdict");
+  v.className="qbig "+(pass?"pass":"fail");
+  v.querySelector(".t").textContent = pass?"PROJDE":"NEPROJDE";
+  document.getElementById("qnums").innerHTML =
+    `<span class="pro">PRO ${c.f}</span> · <span class="proti">PROTI ${c.a}</span> · <span class="zdr">ZDRŽ ${c.z}</span> <b>z ${TOTAL}</b>`;
+  const ruleTxt = rule==="simple"
+    ? `Rozhoduje <b>prostá většina odevzdaných</b> (PRO &gt; PROTI; zdržení se nepočítají). ` +
+      (c.simplePass ? `PRO vede o <b>${c.f-c.a}</b> ${seatWord(c.f-c.a)}.` : `PRO chybí <b>${c.a-c.f+1}</b> ${seatWord(c.a-c.f+1)} k převaze.`)
+    : `Rozhoduje <b>absolutní většina (≥${ABS} z ${TOTAL})</b> — nutná u 2. čtení, souhlasu, nedůvěry. ` +
+      (c.absPass ? `PRO má <b>+${c.absDist}</b> nad prahem.` : `PRO chybí <b>${-c.absDist}</b> ${seatWord(-c.absDist)} do ${ABS}.`);
+  document.getElementById("qsub").innerHTML = ruleTxt;
+  const m=modifiedCount();
+  document.getElementById("modnote").textContent = m? ("✎ "+m+" "+(m===1?"změna":(m>=2&&m<=4?"změny":"změn"))+" oproti výchozímu") : "";
+  document.querySelectorAll("#seg-rule button").forEach(b=>b.classList.toggle("on",b.dataset.v===rule));
+}
+
+function barSimple(c){
+  const cast=c.cast||1, fp=c.f/cast*100, ap=c.a/cast*100, thr=50;
+  const segs =
+    `<div class="seg s-for" style="flex-basis:${fp}%" title="PRO ${c.f}">${fp>10?c.f:""}</div>`+
+    `<div class="seg s-against" style="flex-basis:${ap}%" title="PROTI ${c.a}">${ap>10?c.a:""}</div>`;
+  const ok=c.simplePass, dist=c.simpleDist;
+  const dTxt=(ok?"+":"−")+Math.abs(dist)+" "+(ok?"nad":"pod")+" prahem";
+  const star = rule==="simple" ? " <span class='star'>◀ rozhoduje</span>":"";
+  return `<div class="barblock ${rule==='simple'?'act':''}">
+    <div class="barhdr"><span class="blab">Prostá většina${star}</span>
+      <span class="bval"><b>${c.f}</b> PRO : ${c.a} PROTI</span></div>
+    <div class="track">${segs}<div class="thr" data-l="½ = ${c.needS}" style="left:${thr}%"></div></div>
+    <div class="barcap"><span>práh: víc PRO než PROTI z ${c.cast} odevzdaných</span>
+      <span class="dist ${ok?'ok':'bad'}">${dTxt}</span></div></div>`;
+}
+function barAbs(c){
+  const fp=c.f/TOTAL*100, zp=c.z/TOTAL*100, ap=c.a/TOTAL*100, thr=ABS/TOTAL*100;
+  const segs =
+    `<div class="seg s-for" style="flex-basis:${fp}%" title="PRO ${c.f}">${fp>9?c.f:""}</div>`+
+    `<div class="seg s-abstain" style="flex-basis:${zp}%" title="ZDRŽ ${c.z}">${zp>7?c.z:""}</div>`+
+    `<div class="seg s-against" style="flex-basis:${ap}%" title="PROTI ${c.a}">${ap>9?c.a:""}</div>`;
+  const ok=c.absPass, dist=c.absDist;
+  const dTxt=(ok?"+":"−")+Math.abs(dist)+" "+(ok?"nad":"pod")+" 361";
+  const star = rule==="absolute" ? " <span class='star'>◀ rozhoduje</span>":"";
+  return `<div class="barblock ${rule==='absolute'?'act':''}">
+    <div class="barhdr"><span class="blab">Absolutní většina${star}</span>
+      <span class="bval"><b>${c.f}</b> / ${TOTAL}</span></div>
+    <div class="track">${segs}<div class="thr" data-l="${ABS}" style="left:${thr}%"></div></div>
+    <div class="barcap"><span>práh: ≥${ABS} PRO z ${TOTAL} (zdržení = fakticky proti přijetí)</span>
+      <span class="dist ${ok?'ok':'bad'}">${dTxt}</span></div></div>`;
+}
+function renderBars(){
+  const c=compute();
+  document.getElementById("bars").innerHTML = barSimple(c)+barAbs(c);
+  document.getElementById("absnote").innerHTML = PAYLOAD.thr_note;
+}
+
+// ---- render: faction control (primary) ----
+function renderFactions(){
+  const el=document.getElementById("factions");
+  el.innerHTML = GROUPS.map(g=>{
+    const cur=factionVote[g.id], mod=cur!==BASE_FACTION[g.id];
+    const btn=v=>`<button class="${cur===v?'on v-'+v:''}" onclick="setFaction('${g.id}','${v}')">${VLBL[v]}</button>`;
+    const share=`<div class="sharebar" title="${g.seats} z ${TOTAL} křesel"><i class="s-${cur}" style="width:${(g.seats/TOTAL*100).toFixed(1)}%"></i></div>`;
+    return `<div class="frow">
+      <div class="fmeta">
+        <div class="nm">${g.short}${mod?" <span class='mod'>✎</span>":""}</div>
+        <div class="full">${g.full}</div>
+        <div class="seats"><b>${g.seats}</b> ${seatWord(g.seats)}</div>
+      </div>
+      <div class="vote3">${btn('for')}${btn('abstain')}${btn('against')}</div>
+      ${share}
+    </div>`;
+  }).join("");
+}
+
+// ---- render: country control (bloc + council) ----
+function renderCountries(){
+  const dis = councilFollow ? "" : "cl-disabled";
+  const head=`<tr><th>Země</th><th>Vládní frakce</th><th>Blok země</th><th>Pozice v Radě</th></tr>`;
+  const rows=COUNTRIES.map(c=>{
+    const blocked=!!blocOverride[c.iso];
+    const bb=v=>`<button class="${blocOverride[c.iso]===v?'on v-'+v:(v===null&&!blocOverride[c.iso]?'on':'')}" onclick="setBloc('${c.iso}',${v===null?'null':"'"+v+"'"})">${v===null?'—':VLBL[v]}</button>`;
+    const cb=v=>`<button class="${councilPos[c.iso]===v?'on v-'+v:''}" onclick="setCouncil('${c.iso}','${v}')">${CLBL[v]}</button>`;
+    const gv = c.gov_groups.length
+      ? `<b>${c.gov_seats}</b> · ${c.gov_groups.join(", ")}`
+      : `<span style="color:var(--against)">žádná</span>`;
+    return `<tr class="${blocked?'blocked':''}">
+      <td class="cn">${c.name}<span class="iso">${c.iso} · ${c.seats}</span></td>
+      <td class="gv" title="${c.gov_note.replace(/"/g,'&quot;')}">${gv}</td>
+      <td><span class="seg-mini">${bb(null)}${bb('for')}${bb('abstain')}${bb('against')}</span></td>
+      <td><span class="seg-mini ${dis}">${cb('for')}${cb('abstain')}${cb('against')}</span></td>
+    </tr>`;
+  }).join("");
+  document.getElementById("countries").innerHTML=head+rows;
+}
+
+// ---- render: matrix evidence ----
+function renderMatrix(){
+  const colTot={}; GKEYS.forEach(g=>colTot[g]=0);
+  const head=`<tr><th class="cnh">Země</th>`+GROUPS.map(g=>`<th title="${g.full}">${g.short}</th>`).join("")+`<th class="tot">Σ</th></tr>`;
+  const rows=COUNTRIES.map(c=>{
+    const cells=GROUPS.map(g=>{ const n=c.by_group[g.id]; if(!n) return `<td></td>`;
+      colTot[g.id]+=n; const v=effVote(c.iso,g.id), gov=GOV[c.iso].has(g.id);
+      return `<td><div class="cell ${vcls(v)} ${gov?'gov':''}" title="${c.name} · ${g.short}: ${n} ${seatWord(n)} → ${VLBL[v]}${gov?' (vládně ukotveno)':''}">${n}</div></td>`;
+    }).join("");
+    return `<tr><td class="cn">${c.name}<span class="iso">${c.iso}</span></td>${cells}<td class="tot">${c.seats}</td></tr>`;
+  }).join("");
+  const totrow=`<tr class="totrow"><td class="cn">Σ frakce</td>`+GROUPS.map(g=>`<td>${g.seats}</td>`).join("")+`<td>${TOTAL}</td></tr>`;
+  document.getElementById("matrix").innerHTML=head+rows+totrow;
+
+  document.getElementById("legend").innerHTML =
+    VORDER.map(v=>`<span class="it"><span class="sw s-${v}"></span>${VLBL[v]}</span>`).join("")+
+    `<span class="it"><span class="sw ring"></span>vládně ukotvené křeslo</span>`+
+    `<span class="it" style="color:var(--muted)">prázdná buňka = frakce v zemi nemá křeslo</span>`;
+
+  document.getElementById("rationale").innerHTML =
+    `<div class="ri" style="grid-column:1/-1;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px">Výchozí frakční linie k EU Inc. (editovatelný odhad)</div>`+
+    GROUPS.map(g=>`<div class="ri"><span class="bdot s-${g.baseline}"></span><span><span class="gn">${g.short}</span> <span class="bl">${VLBL[g.baseline]}</span> — ${g.rationale}</span></div>`).join("");
+}
+
+function renderFoot(){
+  document.getElementById("foot").innerHTML =
+    `<b>Metodika.</b> Modeluje <b>plenární hlasování Evropského parlamentu</b> (10. období 2024–2029, 720 křesel) o EU Inc. `+
+    `Engine sčítá efektivní hlas každé buňky <i>země × frakce</i>; přednost: <b>blok země &gt; linie Rady &gt; frakční linie</b>. `+
+    `<b>Prostá většina</b> = víc PRO než PROTI z odevzdaných (zdržení se nepočítají) — výchozí pro 1. čtení / běžné hlasování. `+
+    `<b>Absolutní většina (≥361)</b> je nutná u 2. čtení, souhlasu a vyslovení nedůvěry. `+
+    `Rozdělení křesel po frakcích ≈ stav EP k ${PAYLOAD.as_of} (Wikipedia / europarl.europa.eu; součty po zemích přesné, vnitřní rozpad místy aproximovaný). `+
+    `Frakční linie i pozice v Radě jsou <b>editovatelné odhady</b>, ne zaznamenané hlasy. Detail a zdroje: <code>NOTES.md</code>.`;
+  document.getElementById("seamfoot").innerHTML =
+    `<b>⌗ Seam pro sloučení.</b> Tento prototyp je samostatný. Při sloučení do tabu vedle „Rada (QMV)": (1) <b>„Pozice v Radě"</b> u každé země `+
+    `přijde živě z Rada-tabu (funkce <code>councilPositionFor(iso)</code> — teď vrací placeholder „${CLBL[PAYLOAD.council_default]||PAYLOAD.council_default}"), `+
+    `(2) přepínač „vládně ukotvení…" propojí oba nástroje, (3) sdílí se barvy/paleta a banner. Datový model (<code>ep_seats.json</code>) zůstává nezávislý na Radě.`;
+}
+
+// ---- handlers ----
+function renderAll(){ renderVerdict(); renderBars(); renderFactions(); renderCountries(); renderMatrix(); }
+function setFaction(g,v){ factionVote[g]=v; renderVerdict(); renderBars(); renderFactions(); renderMatrix(); }
+function setBloc(iso,v){ blocOverride[iso]=v; renderVerdict(); renderBars(); renderCountries(); renderMatrix(); }
+function setCouncil(iso,v){ councilPos[iso]=v; if(councilFollow){renderVerdict();renderBars();renderMatrix();} renderCountries(); }
+function toggleFollow(on){ councilFollow=on; renderVerdict(); renderBars(); renderCountries(); renderMatrix(); }
+function setRule(r){ rule=r; renderVerdict(); renderBars(); }
+function setView(v){ view=v;
+  document.getElementById("view-frakce").style.display = v==="frakce"?"":"none";
+  document.getElementById("view-zeme").style.display = v==="zeme"?"":"none";
+  document.querySelectorAll("#seg-view button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
+}
+function applyScenario(id){
+  const s=PAYLOAD.scenarios.find(x=>x.id===id)||PAYLOAD.scenarios[0];
+  hardReset();
+  const st=s.sets||{};
+  if(st.faction) Object.keys(st.faction).forEach(g=>factionVote[g]=st.faction[g]);
+  if(st.bloc) Object.keys(st.bloc).forEach(i=>blocOverride[i]=st.bloc[i]);
+  if(st.council) Object.keys(st.council).forEach(i=>councilPos[i]=st.council[i]);
+  if(typeof st.councilFollow==="boolean") councilFollow=st.councilFollow;
+  if(st.rule) rule=st.rule;
+  document.getElementById("adesc").textContent=s.desc||"";
+  document.getElementById("followtg").checked=councilFollow;
+  renderAll();
+}
+function reset(){ applyScenario("baseline"); document.getElementById("asel").value="baseline"; }
+
+// init
+document.getElementById("asel").innerHTML = PAYLOAD.scenarios.map(s=>`<option value="${s.id}">${s.label}</option>`).join("");
+hardReset();
+applyScenario("baseline");
+renderFoot();
+</script>
+</body>
+</html>
